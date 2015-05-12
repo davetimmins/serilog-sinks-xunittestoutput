@@ -11,3 +11,4 @@ public void ConfigureLogging(Xunit.Abstractions.ITestOutputHelper output)
 }
 ```
 
+See the [playground project](https://github.com/davetimmins/serilog-sinks-xunittestoutput/blob/master/src/playground/Tests.cs) for an example
