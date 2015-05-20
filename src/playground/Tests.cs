@@ -6,26 +6,26 @@
 
     public class Tests1 : CaptureTests
     {
-        public Tests1(CaptureFixture fixture, ITestOutputHelper output)
-            : base(fixture, output) { }
+        public Tests1(ITestOutputHelper output)
+            : base(output) { }
 
         [Fact]
         public void FirstTest()
         {
-            new NewThing("First", LogProvider.For<Tests1>());
+            new NewThing("First");
             Assert.True(true);
         }
     }
 
     public class Tests2 : CaptureTests
     {
-        public Tests2(CaptureFixture fixture, ITestOutputHelper output)
-            : base(fixture, output) { }
+        public Tests2(ITestOutputHelper output)
+            : base(output) { }
 
         [Fact]
         public void SecondTest()
         {
-            new NewThing("Second", LogProvider.For<Tests2>());
+            new NewThing("Second");
             Assert.True(true);
         }
 
@@ -39,19 +39,22 @@
 
     class NewThing
     {
-        public NewThing (string message, ILog log)
-	    {
+        static readonly ILog log = LogProvider.For<NewThing>();
+
+        public NewThing(string message)
+        {
             log.Info(message);
-	    }
+        }
     }
 
     class NewerThing
     {
-        readonly ILog log;
+        static readonly ILog log = LogProvider.For<NewerThing>();
+
         public NewerThing(string message)
         {
-            log = LogProvider.For<NewerThing>();
             log.Info(message);
+            log.Debug(message);
         }
     }
 }

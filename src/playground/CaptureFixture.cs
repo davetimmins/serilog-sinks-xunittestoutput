@@ -1,43 +1,29 @@
 ﻿namespace playground
 {
     using Serilog;
+    using Serilog.Sinks.XunitTestOutput;
     using System;
-    using Xunit;
     using Xunit.Abstractions;
 
-    public class CaptureFixture
-    {
-        public void Capture()
-        { }
-
-        public void ConfigureLogging(ITestOutputHelper output)
-        {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.XunitTestOutput(output)
-                .CreateLogger();
-        }
-    }
-
-    [CollectionDefinition("Capture")]
-    public class CaptureTestCollection : ICollectionFixture<CaptureFixture> { }
-
-    [Collection("Capture")]
     public abstract class CaptureTests : IDisposable
     {
-        CaptureFixture _fixture;
-        ITestOutputHelper _output;
+        IDisposable _logCapture;
 
-        protected CaptureTests(CaptureFixture fixture, ITestOutputHelper output)
+        static CaptureTests()
         {
-            _fixture = fixture;
-            _output = output;
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.XunitTestOutput()
+                .CreateLogger();
+        }
 
-            _fixture.ConfigureLogging(_output);
+        protected CaptureTests(ITestOutputHelper output)
+        {
+            _logCapture = XUnitTestOutputSink.Capture(output);
         }
 
         public void Dispose()
         {
+            _logCapture.Dispose();
         }
     }
 }
