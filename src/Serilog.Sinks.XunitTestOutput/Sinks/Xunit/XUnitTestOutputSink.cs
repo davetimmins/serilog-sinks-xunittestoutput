@@ -18,8 +18,8 @@
         readonly object _syncRoot = new object();
         IList<IObserver<LogEvent>> _observers = new List<IObserver<LogEvent>>();
         bool _disposed;
-        static ITextFormatter _textFormatter;
-        static readonly Subject<LogEvent> _logEventSubject = new Subject<LogEvent>();
+        static ITextFormatter TextFormatter;
+        static readonly Subject<LogEvent> LogEventSubject = new Subject<LogEvent>();
 
         const string CaptureCorrelationIdKey = "CaptureCorrelationId";
 
@@ -27,9 +27,9 @@
         {
             if (textFormatter == null) throw new ArgumentNullException("textFormatter");
 
-            _observers.Add(_logEventSubject);
+            _observers.Add(LogEventSubject);
 
-            XUnitTestOutputSink._textFormatter = textFormatter;
+            XUnitTestOutputSink.TextFormatter = textFormatter;
         }
 
         /// <summary>
@@ -48,11 +48,11 @@
                 logEvent.Properties.ContainsKey(CaptureCorrelationIdKey) &&
                 logEvent.Properties[CaptureCorrelationIdKey].ToString() == captureId.ToString();
 
-            var subscription = XUnitTestOutputSink._logEventSubject.Where(filter).Subscribe(logEvent =>
+            var subscription = XUnitTestOutputSink.LogEventSubject.Where(filter).Subscribe(logEvent =>
             {
                 using (var writer = new StringWriter())
                 {
-                    XUnitTestOutputSink._textFormatter.Format(logEvent, writer);
+                    XUnitTestOutputSink.TextFormatter.Format(logEvent, writer);
                     testOutputHelper.WriteLine(writer.ToString());
                 }
             });
@@ -65,9 +65,9 @@
             });
         }
 
-        private class DisposableAction : IDisposable
+        class DisposableAction : IDisposable
         {
-            private readonly Action _action;
+            readonly Action _action;
 
             public DisposableAction(Action action)
             {
@@ -89,6 +89,7 @@
             {
                 if (sink == null) throw new ArgumentNullException("sink");
                 if (observer == null) throw new ArgumentNullException("observer");
+
                 _sink = sink;
                 _observer = observer;
             }
@@ -120,7 +121,9 @@
             if (observer == null) throw new ArgumentNullException("observer");
 
             lock (_syncRoot)
+            {
                 _observers.Remove(observer);
+            }
         }
 
         public void Emit(LogEvent logEvent)
@@ -140,13 +143,17 @@
                 catch (Exception ex)
                 {
                     if (exceptions == null)
+                    {
                         exceptions = new List<Exception>();
+                    }
                     exceptions.Add(ex);
                 }
             }
 
             if (exceptions != null)
+            {
                 throw new AggregateException("At least one observer failed to accept the event", exceptions);
+            }
         }
 
         public void Dispose()

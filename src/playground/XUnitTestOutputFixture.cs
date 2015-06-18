@@ -5,18 +5,18 @@
     using System;
     using Xunit.Abstractions;
 
-    public abstract class CaptureTests : IDisposable
+    public class XUnitTestOutputFixture : IDisposable
     {
         IDisposable _logCapture;
 
-        static CaptureTests()
+        static XUnitTestOutputFixture()
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.XunitTestOutput()
                 .CreateLogger();
         }
 
-        protected CaptureTests(ITestOutputHelper output)
+        public void SetTestOutputHelper(ITestOutputHelper output)
         {
             _logCapture = XUnitTestOutputSink.Capture(output);
         }
